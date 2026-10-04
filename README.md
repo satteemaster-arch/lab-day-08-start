@@ -143,10 +143,21 @@ lib/
 | ติ๊กว่าเสร็จ | `id=2` ไปที่ action `toggleTask` | 200 · งาน "เขียน Server Action แรก" กลายเป็นขีดฆ่า (`line-through`) ✅ |
 | ลบงาน | `id=1` ไปที่ action `removeTask` | 200 · งาน "ตั้งค่า Next.js project" หายจาก `/tasks` ✅ |
 
-## ภาพหน้าจอ (ทดสอบในเบราว์เซอร์ — DevTools → Settings → Debugger → Disable JavaScript)
+## ภาพหน้าจอ
 
-<!-- แทนที่ path ด้านล่างด้วยภาพจริง -->
-1. ตั้งค่า Disable JavaScript: `![disable js](docs/twist1-disable-js.png)`
-2. เพิ่มงานตอนปิด JS สำเร็จ: `![add](docs/twist1-add.png)`
-3. ติ๊กว่าเสร็จตอนปิด JS สำเร็จ: `![toggle](docs/twist1-toggle.png)`
-4. ลบงานตอนปิด JS สำเร็จ: `![remove](docs/twist1-remove.png)`
+ถ่ายด้วย Chrome แบบ headless ผ่าน Puppeteer โดยปิด JavaScript ทั้งหน้า (`page.setJavaScriptEnabled(false)` — ผลเท่ากับ DevTools → Disable JavaScript) แล้วคลิกปุ่มจริงทีละปุ่มต่อเนื่องกัน · แถบบนสุดของแต่ละภาพคือ URL จริงและคำอธิบายของขั้นนั้น
+
+**สถานะเริ่มต้น**
+![start](docs/twist1-start.png)
+
+**ส่งชื่องานว่าง → error ขึ้นใต้ฟอร์ม**
+![error](docs/twist1-error.png)
+
+**เพิ่มงาน**
+![add](docs/twist1-add.png)
+
+**ติ๊กว่าเสร็จ (mark-done)**
+![toggle](docs/twist1-toggle.png)
+
+**ลบงาน**
+![remove](docs/twist1-remove.png)
