@@ -119,3 +119,34 @@ lib/
 2. 🔴 **ต้องพิสูจน์ด้วยภาพว่าคนไม่ล็อกอินเข้าหน้า protected ไม่ได้ ทั้งจาก UI และจาก direct URL** — แคป (ก) กดลิงก์ไปหน้า dashboard ตอน log out แล้วโดนเด้ง (ข) พิมพ์ URL `/dashboard` ตรง ๆ ใน address bar ตอน log out แล้วโดนเด้งเหมือนกัน พร้อม Network tab ที่เห็น status `307` **ก่อน**มีไฟล์ของหน้า dashboard โหลดเข้ามา
 3. 🔴 **ใส่ middleware แล้วยังไม่พอ — ข้อความลับต้องหายไปจาก JS ที่ส่งให้เบราว์เซอร์** — middleware กันแค่ request ที่ไป `/dashboard` แต่ไฟล์ JS ของ Client Component อยู่ที่ `/_next/static/...` ซึ่ง `matcher` ไม่ครอบ ใครรู้ URL ก็โหลดได้โดยไม่ต้องล็อกอิน · ทดสอบบน **production build** (`npm run build && npm start`) ไม่ใช่ `npm run dev` เพราะ dev ไม่ได้ bundle แบบเดียวกับที่ผู้ใช้จริงได้รับ
 4. 🔴 **ห้าม hardcode ความลับ (เช่น session secret) ลงในโค้ดที่ commit เข้า git** — ต้องอยู่ใน `.env.local` (gitignore อัตโนมัติ) เท่านั้น — TA เปิด repo ค้นต้องไม่เจอค่าจริง (`.env.local.example` ใส่ได้แค่ค่าตัวอย่าง)
+
+---
+
+# หลักฐาน Twist ข้อ 1 — ปิด JavaScript แล้วฟอร์มยังทำงาน (progressive enhancement)
+
+## ทำไมถึงทำงานได้โดยไม่มี JS
+
+- ทุก mutation เป็น `<form action={serverAction}>` ล้วน ๆ — ไม่มี `fetch` / `onSubmit` / `onClick` ในโค้ดเลย
+- Next.js render แต่ละ `<form>` เป็น HTML ปกติที่มี `method="POST"` และ hidden input ระบุว่าจะเรียก action ไหน
+  (`$ACTION_ID_...` สำหรับปุ่ม toggle/ลบ · `$ACTION_REF_*` + `$ACTION_KEY` สำหรับฟอร์มที่ใช้ `useActionState`)
+- ปุ่ม toggle/ลบ ส่ง `id` ผ่าน `<input type="hidden" name="id">` — ไม่ต้องใช้ JS ผูกค่ากับปุ่ม
+- ตอนปิด JS เบราว์เซอร์จะ submit ฟอร์มแบบดั้งเดิม → server รัน action → ตอบหน้าใหม่กลับมาทั้งหน้า (reload เต็มหน้าแทนการอัปเดตแบบ smooth)
+
+## ผลทดสอบ
+
+ทดสอบบน production build (`npm run build && npm start`) โดยส่ง HTTP POST แบบเดียวกับที่เบราว์เซอร์ปิด JS ส่ง (ใช้ `curl` ส่งเฉพาะ field จาก HTML ของฟอร์ม ไม่รัน JS ใด ๆ)
+
+| การกระทำ | ส่งอะไรไป | ผล |
+|---|---|---|
+| เพิ่มงาน (ชื่อว่าง) | `title=` | 200 · หน้าที่ตอบกลับมีข้อความ error `กรุณาใส่ชื่องาน` ✅ |
+| เพิ่มงาน (ชื่อถูกต้อง) | `title=ทดสอบปิดJS` | 200 · งานใหม่โผล่ใน `/tasks` ✅ |
+| ติ๊กว่าเสร็จ | `id=2` ไปที่ action `toggleTask` | 200 · งาน "เขียน Server Action แรก" กลายเป็นขีดฆ่า (`line-through`) ✅ |
+| ลบงาน | `id=1` ไปที่ action `removeTask` | 200 · งาน "ตั้งค่า Next.js project" หายจาก `/tasks` ✅ |
+
+## ภาพหน้าจอ (ทดสอบในเบราว์เซอร์ — DevTools → Settings → Debugger → Disable JavaScript)
+
+<!-- แทนที่ path ด้านล่างด้วยภาพจริง -->
+1. ตั้งค่า Disable JavaScript: `![disable js](docs/twist1-disable-js.png)`
+2. เพิ่มงานตอนปิด JS สำเร็จ: `![add](docs/twist1-add.png)`
+3. ติ๊กว่าเสร็จตอนปิด JS สำเร็จ: `![toggle](docs/twist1-toggle.png)`
+4. ลบงานตอนปิด JS สำเร็จ: `![remove](docs/twist1-remove.png)`
